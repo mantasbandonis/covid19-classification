@@ -1,2 +1,5 @@
 # covid19-classification
- Classifying Covid19 cases data with Neural Networks
+ 
+ Classifying X-Ray images with Neural Networks to extract Covid-19 cases
+ 
+ Part of the https://www.hackthecrisis.at/ online hackathon

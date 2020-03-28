@@ -18,14 +18,19 @@
 					fileReader.onload = function(fileLoadedEvent) {
 						var srcBase64 = fileLoadedEvent.target.result; // <--- data: base64
 						$('#xray-placeholder').css('background-image', "url('" + srcBase64 + "')");
-						console.log('Converted Base64 version is ' + srcBase64);
 
-						url = 'https://europe-west3-super-hackthecrisis.cloudfunctions.net/classification';
+						var base64Data = srcBase64.substr(srcBase64.indexOf(',') + 1); // cutt the data:image/png;base64, prefix away
+						var data = {
+							type: 'xray',
+							image: base64Data
+						};
+
 						$.ajax({
 							type: 'POST',
-							url: url,
-							data: srcBase64,
-							dataType: 'text',
+							url: 'https://europe-west3-super-hackthecrisis.cloudfunctions.net/classification',
+							data: JSON.stringify(data),
+							contentType: 'application/json; charset=utf-8',
+							dataType: 'json',
 							crossDomain: true,
 							success: function(res) {
 								alert(res);

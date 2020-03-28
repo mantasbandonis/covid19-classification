@@ -1,0 +1,251 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <title>COVID-19 X-Ray Diagnosis</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        var srcBase64;
+
+        function readyToUpload() {
+            document.querySelector('#uploadButton').disabled = false;
+            document.querySelector('#uploadButton').classList.remove('btn-secondary')
+            document.querySelector('#uploadButton').classList.add('btn-primary')
+            var selectedFiles = document.getElementById('inputFileToLoad').files;
+            if (selectedFiles.length > 0) {
+                var fileToLoad = selectedFiles[0];
+                var fileReader = new FileReader();
+
+                fileReader.onload = function(fileLoadedEvent) {
+                    srcBase64 = fileLoadedEvent.target.result;
+                    document.getElementById('xray-placeholder').style.backgroundImage = "url('" + srcBase64 + "')"
+                    document.getElementById('chooseFile').innerText = fileToLoad.name
+                    document.getElementById('textoverimg').innerText = "Upload X-ray image"
+                }
+            };
+            fileReader.readAsDataURL(fileToLoad);
+        }
+
+        function sendFile() {
+            document.getElementById('textoverimg').innerText = "Uploading ..."
+            document.querySelector('.input-group').style.display = "none"
+            document.getElementById('progressContainer').style.display = "flex"
+            url = 'https://europe-west3-super-hackthecrisis.cloudfunctions.net/classification';
+
+            var base64Data = srcBase64.substr(srcBase64.indexOf(',') + 1); // cutt the data:image/png;base64, prefix away
+            var sendData = {
+                type: 'xray',
+                image: base64Data
+            };
+
+            $.ajax({
+                type: 'POST',
+                url: 'https://europe-west3-super-hackthecrisis.cloudfunctions.net/classification',
+                data: JSON.stringify(sendData),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                crossDomain: true,
+                success: function(res) {
+                    alert(res);
+                    console.log(res);
+                },
+                xhr: function() {
+                    var appXhr = $.ajaxSettings.xhr();
+                    if (appXhr.upload) {
+                        appXhr.upload.addEventListener('progress', function(e) {
+                            if (e.lengthComputable) {
+                                var currentProgress = (e.loaded / e.total) * 100; // Amount uploaded in percent
+                                console.log(currentProgress);
+                                document.getElementById('uploadProgress').style.width = Math.round(currentProgress) + "%";
+                                if(currentProgress == 100) {
+                                    document.getElementById('textoverimg').innerText = "Analyzing image ..."
+                                }
+                            }
+                        }, false);
+                    }
+                    return appXhr;
+                },
+            });
+        }
+    </script>
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+
+        html {
+            font-size: 14px;
+        }
+
+        @media (min-width: 768px) {
+            html {
+                font-size: 16px;
+            }
+        }
+
+        .container {
+            max-width: 960px;
+        }
+
+        .card-deck .card {
+            min-width: 220px;
+        }
+
+        .card>img {
+            height: 40vh;
+        }
+
+        .card-deck,
+        #cardcontainer {
+            width: 98% !important;
+        }
+
+        h1.onehead {
+            font-size: 3rem;
+            font-weight: 600;
+        }
+
+        .card-text {
+            font-size: 1.3rem;
+        }
+
+        #xray-placeholder {
+            background-image: url('./xray-image-unsplash.jpg');
+            background-size: cover;
+            background-position: center center;
+        }
+
+        #content {
+            min-height: 80vh;
+        }
+
+        .card-header {
+            background-color: rgba(0, 0, 0, 0.7);
+            height: 40vh;
+        }
+
+        #xray-placeholder:after {
+            content: '\A';
+            position: absolute;
+            width: 100%;
+            height: 40vh;
+            top: 0;
+            left: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 10;
+            border-radius: calc(.25rem - 1px) calc(.25rem - 1px) 0 0;
+        }
+
+        #textoverimg {
+            z-index: 999
+        }
+
+        #uploadProgress {
+            z-index: 900;
+            transition: all 1s;
+        }
+
+        .progress {
+            width: 100%;
+        }
+
+        .custom-file-label::after,
+        #inputGroupFileAddon01 {
+            color: var(--white);
+            background-color: var(--primary);
+            border: 1px solid var(--primary) !important;
+            transition: all 0.6s;
+
+            border-top-right-radius: 0.25rem !important;
+            border-bottom-right-radius: 0.25rem !important;
+        }
+
+        .custom-file:hover,
+        .custom-file>*,
+        .custom-file-label,
+        .custom-file-label::after,
+        .custom-file-label:hover,
+        .custom-file-input,
+        .input-group-append {
+            cursor: pointer !important;
+        }
+
+        #uploadButton {
+            transition: all 0.6s;
+        }
+
+        #progressContainer {
+            display: none;
+            transition: all 0.6s;
+        }
+
+        .custom-file-label::after {
+        display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+        <h5 class="my-0 mr-md-auto font-weight-normal">COVID-19 AI Diagnosis</h5>
+    </div>
+
+    <div class="container-fluid w-100 d-flex justify-content-center align-items-center" id="content">
+        <div class="row" id="cardcontainer">
+            <div class="col-xl-6 mb-4">
+                <div class="card border-0">
+                    <div class="card-body px-4">
+                        <h1 class="onehead mb-4">
+                            Use AI to scan your patients X&#8209;rays for COVID&#8209;19
+                        </h1>
+                        <p class="card-text">
+                            We prototyped an algorithm that has been trained with x-ray pictures from people who have been detected positive for Covid19 and people that are healthy. It is a simple classification task. The aim is to be able to classify people accordingly by feeding in x-rays of their chests. Of course, this is not the only solution approach. There are many other possible ways of using existing infrastructure such as MRT for example or not focusing just on x-rays of the chest.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex flex-column justify-content-center align-items-center" id="xray-placeholder">
+                        <h2 class="card-title text-white" id="textoverimg">Choose X-ray image</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress align-self-start mt-2 mb-2" id="progressContainer">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" id="uploadProgress" role="progressbar" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100" style="width: 10%"></div>
+                        </div>
+                        <div class="input-group">
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="inputFileToLoad" onchange="readyToUpload();">
+                                <label class="custom-file-label" id="chooseFile">Choose file</label>
+                            </div>
+                            <div class="input-group-append mr-3">
+                                <span class="input-group-text" id="inputGroupFileAddon01" onclick="document.querySelector('#inputFileToLoad').click();">Browse</span>
+                            </div>
+                            <button type="button" disabled="true" id="uploadButton" class="btn btn-md btn-secondary" onclick="sendFile();">
+                                Upload X-ray Image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

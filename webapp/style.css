@@ -1,0 +1,178 @@
+.bd-placeholder-img {
+	font-size: 1.125rem;
+	text-anchor: middle;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+@media (min-width: 768px) {
+	.bd-placeholder-img-lg {
+		font-size: 3.5rem;
+	}
+}
+
+html {
+	font-size: 14px;
+}
+
+@media (min-width: 768px) {
+	html {
+		font-size: 16px;
+	}
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: 'Do Hyeon', sans-serif;
+}
+.h3 {
+	margin-bottom: 0;
+}
+
+.container {
+	max-width: 960px;
+}
+
+.card-deck .card {
+	min-width: 220px;
+}
+
+.card > img {
+	height: 40vh;
+}
+
+.card-deck,
+#cardcontainer {
+	width: 98% !important;
+}
+
+h1.onehead {
+	font-size: 3rem;
+	font-weight: 600;
+}
+
+.card-text {
+	font-size: 1.3rem;
+}
+
+#xray-placeholder {
+	background-image: url('./images/xray-image-unsplash.jpeg');
+	background-size: cover;
+	background-position: center center;
+}
+
+#content {
+	min-height: 80vh;
+}
+
+.card-header {
+	background-color: rgba(0, 0, 0, 0.7);
+	height: 40vh;
+}
+
+#xray-placeholder:after {
+	content: '\A';
+	position: absolute;
+	width: 100%;
+	height: 40vh;
+	top: 0;
+	left: 0;
+	background: rgba(0, 0, 0, 0.4);
+	z-index: 10;
+	border-radius: calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0;
+}
+
+#textoverimg {
+	z-index: 999;
+}
+
+#uploadProgress {
+	z-index: 900;
+	transition: all 1s;
+}
+
+.progress {
+	width: 100%;
+}
+
+.custom-file-label::after,
+#inputGroupFileAddon01 {
+	color: var(--white);
+	background-color: var(--primary);
+	border: 1px solid var(--primary) !important;
+	transition: all 0.6s;
+
+	border-top-right-radius: 0.25rem !important;
+	border-bottom-right-radius: 0.25rem !important;
+}
+
+.custom-file:hover,
+.custom-file > *,
+.custom-file-label,
+.custom-file-label::after,
+.custom-file-label:hover,
+.custom-file-input,
+.input-group-append {
+	cursor: pointer !important;
+}
+
+#uploadButton {
+	transition: all 0.6s;
+}
+
+#progressContainer {
+	display: none;
+	transition: all 0.6s;
+}
+
+.custom-file-label::after {
+	display: none !important;
+}
+
+.text-image {
+	max-width: 60%;
+	height: auto;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.primary-color {
+	color: var(--primary);
+}
+
+.grey-color {
+	color: #444444;
+}
+.svg-icon path {
+	fill: var(--primary);
+}
+
+:root {
+	--primary: #a80104;
+}
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:active,
+.progress-bar,
+.btn-primary:visited {
+	background-color: #a80104 !important;
+	border: 1px solid #a80104 !important;
+}
+.greenRedGradient {
+	background: linear-gradient(to right, #00b500, #a80104);
+}
+.demo-xray {
+	height: 100;
+	width: 100;
+	margin: 4;
+	margin-left: 8;
+	margin-right: 8;
+	border-radius: 3%;
+}

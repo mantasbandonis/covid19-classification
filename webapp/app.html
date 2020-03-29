@@ -6,353 +6,19 @@
 		<title>COVID-19 X-Ray Diagnosis</title>
 		<link rel="shortcut icon" type="image/x-icon" href="./images/favicon.ico" />
 		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
+		<link rel="stylesheet" href="./style.css" />
 		<link href="https://fonts.googleapis.com/css?family=Do+Hyeon&display=swap" rel="stylesheet" />
 		<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 		<script src="https://info.gesundheitsministerium.at/data/SimpleData.js"></script>
-		<script type="text/javascript">
-			var srcBase64;
-
-			function allowDrop(ev) {
-				ev.preventDefault();
-			}
-
-			function drag(ev) {
-				ev.dataTransfer.setData('text', ev.target.id);
-			}
-
-			function drop(ev) {
-				ev.preventDefault();
-				var data = ev.dataTransfer.getData('text');
-				console.log(data);
-				srcBase64 = getBase64Image(document.getElementById(data));
-				document.getElementById('result-page').classList.replace('d-flex', 'd-none');
-				document.getElementById('xray-placeholder').style.backgroundImage = "url('" + srcBase64 + "')";
-				document.getElementById('chooseFile').innerText = data;
-				document.getElementById('textoverimg').innerText = 'Upload X-ray image';
-				sendFile();
-			}
-
-			function getBase64Image(img) {
-				var canvas = document.createElement('canvas');
-				canvas.width = img.naturalWidth;
-				canvas.height = img.naturalHeight;
-				var ctx = canvas.getContext('2d');
-				ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
-				return canvas.toDataURL('image/png');
-			}
-
-			$(document).ready(function() {
-				$('#numberOfCases').text(Erkrankungen);
-			});
-
-			function isValid(file) {
-				return isValidExtension(file) && isValidSize(file);
-			}
-
-			function isValidExtension(file) {
-				var filename = file.name;
-				var filesize = file.size; // in Byte
-				var fileExtension = filename
-					.split('.')
-					.pop()
-					.toLowerCase();
-
-				// There are more extensions/formats supportet, see:
-				// https://pillow.readthedocs.io/en/5.1.x/handbook/image-file-formats.html
-				var allowedExtensions = ['bmp', 'gif', 'jpg', 'jpeg', 'jpe', 'jfif', 'png', 'tiff', 'tga'];
-				if ($.inArray(fileExtension, allowedExtensions) == -1) {
-					$('#fileExtensionAlert').show();
-					return false;
-				} else {
-					$('#fileExtensionAlert').hide();
-					return true;
-				}
-			}
-
-			function isValidSize(file) {
-				var filesize = file.size; // in Byte
-
-				// Maximum file size is set to 10MB, can be changed if necessarily
-				if (filesize > 10 * 1000000) {
-					$('#fileSizeAlert').show();
-					return false;
-				} else {
-					$('#fileSizeAlert').hide();
-					return true;
-				}
-			}
-
-			function readyToUpload() {
-				var selectedFiles = document.getElementById('inputFileToLoad').files;
-				document.getElementById('result-page').classList.replace('d-flex', 'd-none');
-				if (selectedFiles.length > 0) {
-					var file = selectedFiles[0];
-					console.log(file);
-					if (isValid(file)) {
-						document.querySelector('#uploadButton').disabled = false;
-						document.querySelector('#uploadButton').classList.remove('btn-secondary');
-						document.querySelector('#uploadButton').classList.add('btn-primary');
-
-						var fileReader = new FileReader();
-						fileReader.onload = function(fileLoadedEvent) {
-							srcBase64 = fileLoadedEvent.target.result;
-							document.getElementById('xray-placeholder').style.backgroundImage = "url('" + srcBase64 + "')";
-							document.getElementById('chooseFile').innerText = file.name;
-							document.getElementById('textoverimg').innerText = 'Upload X-ray image';
-						};
-					} else {
-						document.querySelector('#uploadButton').disabled = true;
-						document.querySelector('#uploadButton').classList.remove('btn-primary');
-						document.querySelector('#uploadButton').classList.add('btn-secondary');
-					}
-				}
-				fileReader.readAsDataURL(file);
-			}
-
-			function sendFile() {
-				document.getElementById('textoverimg').innerText = 'Uploading ...';
-				document.querySelector('.input-group').style.display = 'none';
-				document.getElementById('progressContainer').style.display = 'flex';
-				url = 'https://europe-west3-super-hackthecrisis.cloudfunctions.net/classification';
-
-				var base64Data = srcBase64.substr(srcBase64.indexOf(',') + 1); // cutt the data:image/png;base64, prefix away
-				var sendData = {
-					type: 'xray',
-					image: base64Data
-				};
-
-				$.ajax({
-					type: 'POST',
-					url: 'https://europe-west3-super-hackthecrisis.cloudfunctions.net/classification',
-					data: JSON.stringify(sendData),
-					contentType: 'application/json; charset=utf-8',
-					dataType: 'json',
-					crossDomain: true,
-					success: function(res) {
-						//alert(res);
-						console.log(res);
-						var possibility = 100 * Math.sqrt(parseFloat(res));
-						var covidStatus = possibility > 50 ? 'positive' : 'negative';
-						var resultText = Math.round(possibility) + '% COVID-19 \n ' + covidStatus;
-						document.getElementById('covidSlider').style.left = Math.round(200 * res - 1);
-						document.getElementById('textoverimg').innerText = resultText;
-						document.querySelector('.input-group').style.display = 'flex';
-						document.getElementById('progressContainer').style.display = 'none';
-						document.getElementById('uploadProgress').style.width = 0;
-						document.getElementById('result-page').classList.replace('d-none', 'd-flex');
-					},
-					xhr: function() {
-						var appXhr = $.ajaxSettings.xhr();
-						if (appXhr.upload) {
-							appXhr.upload.addEventListener(
-								'progress',
-								function(e) {
-									if (e.lengthComputable) {
-										var currentProgress = (e.loaded / e.total) * 100; // Amount uploaded in percent
-										console.log(currentProgress);
-										document.getElementById('uploadProgress').style.width = Math.round(currentProgress) + '%';
-										if (currentProgress == 100) {
-											document.getElementById('textoverimg').innerText = 'Analyzing image ...';
-										}
-									}
-								},
-								false
-							);
-						}
-						return appXhr;
-					}
-				});
-			}
-		</script>
-		<style>
-			.bd-placeholder-img {
-				font-size: 1.125rem;
-				text-anchor: middle;
-				-webkit-user-select: none;
-				-moz-user-select: none;
-				-ms-user-select: none;
-				user-select: none;
-			}
-
-			@media (min-width: 768px) {
-				.bd-placeholder-img-lg {
-					font-size: 3.5rem;
-				}
-			}
-
-			html {
-				font-size: 14px;
-			}
-
-			@media (min-width: 768px) {
-				html {
-					font-size: 16px;
-				}
-			}
-
-			h1,
-			h2,
-			h3,
-			h4,
-			h5,
-			h6 {
-				font-family: 'Do Hyeon', sans-serif;
-			}
-			.h3 {
-				margin-bottom: 0;
-			}
-
-			.container {
-				max-width: 960px;
-			}
-
-			.card-deck .card {
-				min-width: 220px;
-			}
-
-			.card > img {
-				height: 40vh;
-			}
-
-			.card-deck,
-			#cardcontainer {
-				width: 98% !important;
-			}
-
-			h1.onehead {
-				font-size: 3rem;
-				font-weight: 600;
-			}
-
-			.card-text {
-				font-size: 1.3rem;
-			}
-
-			#xray-placeholder {
-				background-image: url('./images/xray-image-unsplash.jpeg');
-				background-size: cover;
-				background-position: center center;
-			}
-
-			#content {
-				min-height: 80vh;
-			}
-
-			.card-header {
-				background-color: rgba(0, 0, 0, 0.7);
-				height: 40vh;
-			}
-
-			#xray-placeholder:after {
-				content: '\A';
-				position: absolute;
-				width: 100%;
-				height: 40vh;
-				top: 0;
-				left: 0;
-				background: rgba(0, 0, 0, 0.4);
-				z-index: 10;
-				border-radius: calc(0.25rem - 1px) calc(0.25rem - 1px) 0 0;
-			}
-
-			#textoverimg {
-				z-index: 999;
-			}
-
-			#uploadProgress {
-				z-index: 900;
-				transition: all 1s;
-			}
-
-			.progress {
-				width: 100%;
-			}
-
-			.custom-file-label::after,
-			#inputGroupFileAddon01 {
-				color: var(--white);
-				background-color: var(--primary);
-				border: 1px solid var(--primary) !important;
-				transition: all 0.6s;
-
-				border-top-right-radius: 0.25rem !important;
-				border-bottom-right-radius: 0.25rem !important;
-			}
-
-			.custom-file:hover,
-			.custom-file > *,
-			.custom-file-label,
-			.custom-file-label::after,
-			.custom-file-label:hover,
-			.custom-file-input,
-			.input-group-append {
-				cursor: pointer !important;
-			}
-
-			#uploadButton {
-				transition: all 0.6s;
-			}
-
-			#progressContainer {
-				display: none;
-				transition: all 0.6s;
-			}
-
-			.custom-file-label::after {
-				display: none !important;
-			}
-
-			.text-image {
-				max-width: 60%;
-				height: auto;
-				display: block;
-				margin-left: auto;
-				margin-right: auto;
-			}
-
-			.primary-color {
-				color: var(--primary);
-			}
-
-			.grey-color {
-				color: #444444;
-			}
-			.svg-icon path {
-				fill: var(--primary);
-			}
-
-			:root {
-				--primary: #a80104;
-			}
-			.btn-primary,
-			.btn-primary:hover,
-			.btn-primary:active,
-			.progress-bar,
-			.btn-primary:visited {
-				background-color: #a80104 !important;
-				border: 1px solid #a80104 !important;
-			}
-			.greenRedGradient {
-				background: linear-gradient(to right, #009900, #a80104);
-			}
-			.demo-xray {
-				height: 100;
-				width: 100;
-				margin: 4;
-				margin-left: 8;
-				margin-right: 8;
-				border-radius: 3%;
-			}
-		</style>
+		<script src="./script.js"></script>
 	</head>
 
 	<body>
 		<!--<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
 			<h5 class="my-0 mr-md-auto font-weight-normal">COVID-19 AI Diagnosis</h5>
 		</div>-->
-
 		<div class="container-fluid w-100 d-flex justify-content-center align-items-center" id="content">
 			<div class="row align-items-center" id="cardcontainer">
 				<div class="col-xl-6 mb-4">
@@ -361,11 +27,15 @@
 							<h1 class="onehead mb-4 primary-color">
 								SUPERCHARGE COVID-19 TESTING
 							</h1>
-							<p class="card-text">In the fight against the Coronavirus, one of the biggest challenges are the so called Superspreaders, people who are infected, but don't show any symptoms. Until now, we found <span id="numberOfCases">8000</span> infected people in Austria, but only a few of the Superspreaders, who can only be found with mass testing.</p>
+
+							<p class="card-text">
+								In the fight against the Coronavirus, one of the biggest challenges are the so called Superspreaders. These are people who are infected, but do not show any symptoms. In Austria people with no symptoms are not tested, due to a shortage of material and medical staff for the RT-PCR tests. Until now, we found <span id="numberOfCases">8000</span> infected people in Austria, but only a few of the Superspreaders. Mass testing will increase the detection of Superspeaders and therefore
+								prevent them from spreading the disease without even noticing.
+							</p>
 							<div class="d-flex flex-row align-items-center">
 								<div>
 									<p class="card-text">To increase the testing capacity, SUPER develops a Machine Learning based solutions for COVID-19 detection from CT scans and X-Ray Images.</p>
-									<p class="card-text">This is project is still under development and shouldn't be used for medical diagnosis.</p>
+									<p class="card-text">This project is still under development and shouldn't be used for medical diagnosis.</p>
 								</div>
 								<div class="w-50 hidden-sm">
 									<img src="./images/undraw_medicine.png" class="img-fluid" alt="Decoration" />
@@ -436,18 +106,18 @@
 					<div style="height: 32;"></div>
 					<div class="h5 text-center">Normal X-Rays</div>
 					<div class="d-flex flex-row justify-content-center align-items-center">
-						<img id="normal1" src="./images/normal/n1.jpeg" draggable="true" ondragstart="drag(event)" class="demo-xray" />
-						<img id="normal2" src="./images/normal/n2.jpeg" draggable="true" ondragstart="drag(event)" class="demo-xray" />
-						<img id="normal3" src="./images/normal/n3.jpeg" draggable="true" ondragstart="drag(event)" class="demo-xray" />
-						<img id="normal4" src="./images/normal/n4.jpeg" draggable="true" ondragstart="drag(event)" class="demo-xray" />
+						<img id="normal1" src="./images/normal/n1.jpeg" draggable="true" ondragstart="drag(event)" onclick="uploadDemo(this.id)" class="demo-xray" />
+						<img id="normal2" src="./images/normal/n2.jpeg" draggable="true" ondragstart="drag(event)" onclick="uploadDemo(this.id)" class="demo-xray" />
+						<img id="normal3" src="./images/normal/n3.jpeg" draggable="true" ondragstart="drag(event)" onclick="uploadDemo(this.id)" class="demo-xray" />
+						<img id="normal4" src="./images/normal/n4.jpeg" draggable="true" ondragstart="drag(event)" onclick="uploadDemo(this.id)" class="demo-xray" />
 					</div>
 					<div style="height: 16;"></div>
 					<div class="h5 text-center">COVID-19 X-Rays</div>
 					<div class="d-flex flex-row justify-content-center align-items-center">
-						<img id="covid1" src="./images/covid/c1.jpeg" draggable="true" ondragstart="drag(event)" class="demo-xray" />
-						<img id="covid2" src="./images/covid/c2.jpeg" draggable="true" ondragstart="drag(event)" class="demo-xray" />
-						<img id="covid3" src="./images/covid/c3.jpeg" draggable="true" ondragstart="drag(event)" class="demo-xray" />
-						<img id="covid4" src="./images/covid/c4.jpeg" draggable="true" ondragstart="drag(event)" class="demo-xray" />
+						<img id="covid1" src="./images/covid/c1.jpeg" draggable="true" ondragstart="drag(event)" onclick="uploadDemo(this.id)" class="demo-xray" />
+						<img id="covid2" src="./images/covid/c2.jpeg" draggable="true" ondragstart="drag(event)" onclick="uploadDemo(this.id)" class="demo-xray" />
+						<img id="covid3" src="./images/covid/c3.jpeg" draggable="true" ondragstart="drag(event)" onclick="uploadDemo(this.id)" class="demo-xray" />
+						<img id="covid4" src="./images/covid/c4.jpeg" draggable="true" ondragstart="drag(event)" onclick="uploadDemo(this.id)" class="demo-xray" />
 					</div>
 					<div class="alert alert-danger" role="alert" id="fileExtensionAlert" style="display:none;">
 						<span>

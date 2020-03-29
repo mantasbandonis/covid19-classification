@@ -170,7 +170,7 @@ h1.onehead {
 	border: 1px solid #a80104 !important;
 }
 .greenRedGradient {
-	background: linear-gradient(to right, #00b500, #a80104);
+	background: linear-gradient(to right, #00ff00, #ff0000);
 }
 .demo-xray {
 	height: 100;

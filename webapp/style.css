@@ -17,9 +17,9 @@ html {
 	font-size: 14px;
 }
 
-html, body {
+/*html, body {
 	overflow: hidden;
-}
+}*/
 
 @media (min-width: 768px) {
 	html {
